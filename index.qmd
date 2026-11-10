@@ -19,7 +19,7 @@ execute:
 
 Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
 
-```{r, setup}
+```{r}
 
 library(glmmTMB)
 library(dplyr)
@@ -31,10 +31,55 @@ library(gt)
 library(readr)
 library(DHARMa)
 library(ggeffects)
+library(titanic)
 
-couples <- read_csv("data/couples.csv")
+## Pulling built-in R dataset
+titanic <- titanic_train
+```
+## Descriptives
+```{r}
+titanic <- titanic |>
+  select(Survived, Sex, Age, Pclass) |> ## Selecting variables of interest
+  drop_na() |>
+  mutate(Sex.Binary = case_when(
+      Sex == "male" ~ 0,
+      Sex == "female" ~ 1)) |> ## Giving numerical values to sex categories
+  mutate(Survived.Char = case_when(
+      Survived == 0 ~ "Died",
+      Survived == 1 ~ "Survived")) |> # Giving informative labels to numerically-assigned categories
+  mutate(Pclass.Char = case_when(
+      Pclass == "1" ~ "First Class",
+      Pclass == "2" ~ "Second Class",
+      Pclass == "3" ~ "Third Class")) |>
+  mutate(Pclass = factor(Pclass, levels = c(1, 2, 3))) |> ## Re-classifying integer vector as factor
+  select(Survived, Survived.Char, Sex, Sex.Binary, Pclass, Pclass.Char, Age) ## Expanding dataset to include newly created vectors
 
-n <- nrow(couples)
+descriptives <- titanic |>
+  summarise(across(
+    c(Age),
+    list(mean = mean, sd = sd, min = min, max = max))) |> #Specifying specific descriptive statistics
+  pivot_longer(
+    everything(),
+    names_to = c("variable", ".value"),
+    names_sep = "_") ## Transposing values to appear in columns
+
+  gt(descriptives) |> 
+  fmt_number(columns = where(is.numeric), decimals = 2) ## Producing table with formatted values to two decimal places
+
+descriptives.categorical <- titanic |> 
+  select(Survived.Char, Sex, Pclass.Char) |> ## Selecting categorical variables
+  pivot_longer(everything(),
+               names_to = "Variable",
+               values_to = "Category") |> ## Transposing values to appear in columns
+  count(Variable, Category, name = "n") |> ## Calculating counts
+  group_by(Variable) |> ## Grouping stats by factors
+  mutate(Variable = recode(Variable,
+    Survived.Char = "Survival Status",
+    Pclass.Char = "Passenger Class")) |> ## Renaming variables for table
+  mutate(Percentage = paste0(round(n / sum(n) * 100, 1), "%")) ## Adding percentages for added context
+    
+  gt(descriptives.categorical) |> ## Generating GT table
+    tab_options(table.width = px(300)) ## Making columns wider to separate them more cleanly
 ```
 
 
