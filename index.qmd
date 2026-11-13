@@ -113,15 +113,9 @@ mod3 <- glmmTMB(Survived ~ Sex.Binary + Pclass + Age,
                 family = binomial(link = "logit")) ## Evaluate the additional contribution of age
 ```
 
-In the intercept-only model, the intercept estimate (-0.38, p <.001) represents the log-odds of survival overall. In Model 1, the intercept estimate (-1.35, p <.001) represents the log-odds of survival by male passengers. In Model 2, the intercept estimate (-0.24, p = .19) represents the log-odds of survival by first-class male passengers. Given that the intercept estimate became less negative between Models 1 and 2, this suggests that having a first-class ticket increased males' likelihood of survival (or rather, decreased this demographic's likelihood of dying). That said, the estimate is not statistically significant, indicating a lack of evidence that the baseline log-odds of survival differ from zero (equivalent to a survival probability of 50%). In Model 3, the intercept estimate (1.25, p <.001) represents the log-odds of survival by first-class male passengers at 0 years of age. Given the prediction that younger passengers (particularly children) were more likely to survive because of their prioritized evacuation (at least those in first-class), it is unsurprising to see that the intercept's log-odds increased from Model 2 and is higher in the positive direction.
+In the intercept-only model, the intercept estimate (-0.38, p <.001) represents the log-odds of survival overall. In Model 1, the intercept estimate (-1.35, p <.001) represents the log-odds of survival by male passengers. In Model 2, the intercept estimate (-0.24, p = .192) represents the log-odds of survival by first-class male passengers. Given that the intercept estimate became less negative between Models 1 and 2, this suggests that having a first-class ticket increased males' likelihood of survival (or rather, decreased this demographic's likelihood of dying). That said, the estimate is not statistically significant, indicating a lack of evidence that the baseline log-odds of survival differ from zero (equivalent to a survival probability of 50%). In Model 3, the intercept estimate (1.25, p <.001) represents the log-odds of survival by first-class male passengers at 0 years of age. Given the prediction that younger passengers (particularly children) were more likely to survive because of their prioritized evacuation (at least those in first-class), it is unsurprising to see that the intercept's log-odds increased from Model 2 and is higher in the positive direction.
 
 ## Nested Model Comparisons
-
-1.  Does `Sex` explain significantly more variation than the intercept-only model?
-
-2.  Does adding `Pclass` improve model fit beyond `Sex`?
-
-3.  Does adding `Age` increase improve model fit beyond `Sex` and `Pclass`?
 ``` {r}
 tests <- anova(mod0, mod1, mod2, mod3) ## Comparing models
 
@@ -293,7 +287,10 @@ coefficient_results |>
       ifelse(x < .001,
         "< .001",
         sprintf("%.3f", x))}) ## Formatting p-values
-
+```
+```{r}
+#| echo: true
+#| results: hide
 fixef(mod3) ## Extracting fixed-effect coefficient estimates for each predictor
 round(fixef(mod3)$cond[["Sex.Binary"]], 2)
 round(fixef(mod3)$cond[["Pclass2"]], 2)
@@ -383,4 +380,4 @@ ggplot(pred_age, aes(x, predicted)) +
 ## Substantive Conclusions
 The results suggest that sex was the strongest predictor of survival, with women having substantially higher odds of survival than men, even after controlling for the influence of ticket class and age. Ticket class was also an important predictor: passengers in second- and (particularly) third-class had significantly lower odds of survival compared to first-class passengers, suggesting that socioeconomic status may have influenced access to survival opportunities. Age was also associated with survival, with older passengers having lower odds of survival, although its effect appeared more modest than those of sex and ticket class.
 
-Several limitations should be considered. First, ticket class is only a proxy for socioeconomic status and may also reflect factors like closer access to the upper deck and evacuation routes. It is also possible that passengers in second- or third-class were not necessarily low in SES, but selected these classes of tickets for other reasons (e.g., frugality). Second, this analysis relies on cross-sectional data, so these associations cannot establish that sex, class, or age directly caused differences in survival. Third, other potentially relevant factors (e.g., family status, cabin location) were not included. Fourth, the results cannot speak to the reasons why the identified demographic groups had higher or lower odds of survival; therefore, related conclusions are speculative. Finally, the analysis excluded passengers with missing data, which may introduce bias if they differed systematically from those included in the sample. Thus, the findings highlight meaningful associations with survival but should not be interpreted as a complete explanation of why passengers survived or died.
+Several limitations should be considered. First, ticket class is only a proxy for socioeconomic status and may also reflect factors like closer access to the upper deck and evacuation routes. It is also possible that passengers in second- or third-class were not necessarily low in SES, but selected these classes of tickets for other reasons (e.g., frugality). Second, this analysis relies on cross-sectional data, so these associations cannot establish that sex, class, or age directly *caused* differences in survival. Third, other potentially relevant factors (e.g., family status, cabin location) were not included. Fourth, the results cannot speak to the reasons *why* the identified demographic groups had higher or lower odds of survival; therefore, related conclusions are speculative. Finally, the analysis excluded passengers with missing data, which may introduce bias if they differed systematically from those included in the sample. Thus, the findings highlight meaningful associations with survival but should not be interpreted as a complete explanation of why passengers survived or died.
